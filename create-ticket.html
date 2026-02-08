@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Créer un Ticket - 0x00</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="nav-left">
+            <select id="language-selector" class="language-select">
+                <option value="fr">Français</option>
+                <option value="en">English</option>
+            </select>
+        </div>
+        <div class="nav-right">
+            <span class="username-display" id="username-display"></span>
+            <button class="btn btn-small" id="logout-btn" data-fr="Déconnexion" data-en="Logout">Déconnexion</button>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div class="form-wrapper">
+            <h2 class="form-title" data-fr="Créer un Ticket" data-en="Create a Ticket">Créer un Ticket</h2>
+            <form id="ticket-form" class="ticket-form">
+                <div class="form-group">
+                    <label for="discord-username" data-fr="Pseudo Discord" data-en="Discord Username">Pseudo
+                        Discord</label>
+                    <input type="text" id="discord-username" name="discord-username" required>
+                </div>
+                <div class="form-group">
+                    <label for="reason" data-fr="Raison du ticket" data-en="Ticket Reason">Raison du ticket</label>
+                    <textarea id="reason" name="reason" rows="4" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="additional-info" data-fr="Informations supplémentaires"
+                        data-en="Additional Information">Informations supplémentaires</label>
+                    <textarea id="additional-info" name="additional-info" rows="6"
+                        placeholder="Informations que vous avez déjà sur la personne..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary" data-fr="Soumettre le ticket"
+                    data-en="Submit Ticket">Soumettre le ticket</button>
+                <div id="ticket-success" class="success-message"></div>
+                <div id="ticket-error" class="error-message"></div>
+            </form>
+        </div>
+    </main>
+
+    <script src="scrpit.js"></script>
+    <script>
+        // Check authentication
+        const token = localStorage.getItem('token');
+        const username = localStorage.getItem('username');
+
+        if (!token) {
+            window.location.href = 'login.html';
+        }
+
+        document.getElementById('username-display').textContent = username;
+
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            localStorage.clear();
+            window.location.href = 'index.html';
+        });
+
+        document.getElementById('ticket-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const discordUsername = document.getElementById('discord-username').value;
+            const reason = document.getElementById('reason').value;
+            const additionalInfo = document.getElementById('additional-info').value;
+            const successDiv = document.getElementById('ticket-success');
+            const errorDiv = document.getElementById('ticket-error');
+
+            successDiv.textContent = '';
+            errorDiv.textContent = '';
+
+            try {
+                const response = await fetch('http://localhost:5000/api/tickets', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        discord_username: discordUsername,
+                        reason: reason,
+                        additional_info: additionalInfo
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    successDiv.textContent = 'Ticket créé avec succès !';
+                    document.getElementById('ticket-form').reset();
+                } else {
+                    errorDiv.textContent = data.error || 'Erreur lors de la création du ticket';
+                }
+            } catch (error) {
+                errorDiv.textContent = 'Erreur de connexion au serveur';
+            }
+        });
+    </script>
+</body>
+
+</html>

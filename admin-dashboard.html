@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Admin - 0x00</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="nav-left">
+            <select id="language-selector" class="language-select">
+                <option value="fr">Français</option>
+                <option value="en">English</option>
+            </select>
+        </div>
+        <div class="nav-right">
+            <span class="username-display" id="username-display"></span>
+            <button class="btn btn-small" id="logout-btn" data-fr="Déconnexion" data-en="Logout">Déconnexion</button>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div class="dashboard-wrapper">
+            <h2 class="dashboard-title" data-fr="Tous les Tickets" data-en="All Tickets">Tous les Tickets</h2>
+            <div class="tickets-container" id="tickets-container">
+                <p class="loading" data-fr="Chargement des tickets..." data-en="Loading tickets...">Chargement des
+                    tickets...</p>
+            </div>
+        </div>
+    </main>
+
+    <script src="scrpit.js"></script>
+    <script>
+        // Check admin authentication
+        const token = localStorage.getItem('token');
+        const username = localStorage.getItem('username');
+        const role = localStorage.getItem('role');
+
+        if (!token || role !== 'admin') {
+            window.location.href = 'login.html';
+        }
+
+        document.getElementById('username-display').textContent = `Admin: ${username}`;
+
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            localStorage.clear();
+            window.location.href = 'index.html';
+        });
+
+        // Load tickets
+        async function loadTickets() {
+            const container = document.getElementById('tickets-container');
+
+            try {
+                const response = await fetch('http://localhost:5000/api/admin/tickets', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    if (data.tickets.length === 0) {
+                        container.innerHTML = '<p class="no-tickets">Aucun ticket pour le moment</p>';
+                    } else {
+                        container.innerHTML = data.tickets.map(ticket => `
+                            <div class="ticket-card">
+                                <div class="ticket-header">
+                                    <span class="ticket-id">Ticket #${ticket.id}</span>
+                                    <span class="ticket-date">${new Date(ticket.created_at).toLocaleString()}</span>
+                                </div>
+                                <div class="ticket-body">
+                                    <p><strong>Utilisateur:</strong> ${ticket.username}</p>
+                                    <p><strong>Discord:</strong> ${ticket.discord_username}</p>
+                                    <p><strong>Raison:</strong> ${ticket.reason}</p>
+                                    <p><strong>Informations supplémentaires:</strong></p>
+                                    <p class="ticket-info">${ticket.additional_info || 'Aucune'}</p>
+                                </div>
+                                <div class="ticket-footer">
+                                    <span class="ticket-status status-${ticket.status}">${ticket.status}</span>
+                                </div>
+                            </div>
+                        `).join('');
+                    }
+                } else {
+                    container.innerHTML = '<p class="error-message">Erreur lors du chargement des tickets</p>';
+                }
+            } catch (error) {
+                container.innerHTML = '<p class="error-message">Erreur de connexion au serveur</p>';
+            }
+        }
+
+        loadTickets();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion - 0x00</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="nav-left">
+            <select id="language-selector" class="language-select">
+                <option value="fr">Français</option>
+                <option value="en">English</option>
+            </select>
+        </div>
+        <div class="nav-right">
+            <a href="index.html" class="back-link" data-fr="Retour" data-en="Back">Retour</a>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div class="form-wrapper">
+            <h2 class="form-title" data-fr="Connexion" data-en="Login">Connexion</h2>
+            <form id="login-form" class="auth-form">
+                <div class="form-group">
+                    <label for="username" data-fr="Nom d'utilisateur" data-en="Username">Nom d'utilisateur</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password" data-fr="Mot de passe" data-en="Password">Mot de passe</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <button type="submit" class="btn btn-primary" data-fr="Se connecter" data-en="Login">Se
+                    connecter</button>
+                <div id="login-error" class="error-message"></div>
+            </form>
+            <p class="form-footer">
+                <span data-fr="Pas de compte ?" data-en="No account?">Pas de compte ?</span>
+                <a href="register.html" data-fr="S'inscrire" data-en="Sign up">S'inscrire</a>
+            </p>
+        </div>
+    </main>
+
+    <script src="scrpit.js"></script>
+    <script>
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('login-error');
+
+            try {
+                const response = await fetch('http://localhost:5000/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('username', data.username);
+                    localStorage.setItem('role', data.role);
+
+                    if (data.role === 'admin') {
+                        window.location.href = 'admin-dashboard.html';
+                    } else {
+                        window.location.href = 'create-ticket.html';
+                    }
+                } else {
+                    errorDiv.textContent = data.error || 'Erreur de connexion';
+                }
+            } catch (error) {
+                errorDiv.textContent = 'Erreur de connexion au serveur';
+            }
+        });
+    </script>
+</body>
+
+</html>

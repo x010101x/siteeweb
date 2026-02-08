@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inscription - 0x00</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="nav-left">
+            <select id="language-selector" class="language-select">
+                <option value="fr">Français</option>
+                <option value="en">English</option>
+            </select>
+        </div>
+        <div class="nav-right">
+            <a href="index.html" class="back-link" data-fr="Retour" data-en="Back">Retour</a>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div class="form-wrapper">
+            <h2 class="form-title" data-fr="Créer un compte" data-en="Create Account">Créer un compte</h2>
+            <form id="register-form" class="auth-form">
+                <div class="form-group">
+                    <label for="username" data-fr="Nom d'utilisateur" data-en="Username">Nom d'utilisateur</label>
+                    <input type="text" id="username" name="username" required minlength="3">
+                </div>
+                <div class="form-group">
+                    <label for="password" data-fr="Mot de passe" data-en="Password">Mot de passe</label>
+                    <input type="password" id="password" name="password" required minlength="6">
+                </div>
+                <div class="form-group">
+                    <label for="confirm-password" data-fr="Confirmer le mot de passe"
+                        data-en="Confirm Password">Confirmer le mot de passe</label>
+                    <input type="password" id="confirm-password" name="confirm-password" required>
+                </div>
+                <button type="submit" class="btn btn-primary" data-fr="S'inscrire" data-en="Sign Up">S'inscrire</button>
+                <div id="register-error" class="error-message"></div>
+            </form>
+            <p class="form-footer">
+                <span data-fr="Déjà un compte ?" data-en="Already have an account?">Déjà un compte ?</span>
+                <a href="login.html" data-fr="Se connecter" data-en="Login">Se connecter</a>
+            </p>
+        </div>
+    </main>
+
+    <script src="scrpit.js"></script>
+    <script>
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            const errorDiv = document.getElementById('register-error');
+
+            if (password !== confirmPassword) {
+                errorDiv.textContent = 'Les mots de passe ne correspondent pas';
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:5000/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    alert('Compte créé avec succès !');
+                    window.location.href = 'login.html';
+                } else {
+                    errorDiv.textContent = data.error || 'Erreur lors de l\'inscription';
+                }
+            } catch (error) {
+                errorDiv.textContent = 'Erreur de connexion au serveur';
+            }
+        });
+    </script>
+</body>
+
+</html>
